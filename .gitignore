@@ -1,0 +1,7 @@
+/dist
+/build.bat
+/upload.bat
+.deviceid
+__pycache__
+build
+.venv
