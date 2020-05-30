@@ -1,7 +1,12 @@
 # Introduction
 
-This is a Python module for making a connection to a Duka One S6W 
-The primary goal for this module id to make an interface from Home Assistant to Duka One
+This is a Python module for making a connection to a Duka One S6W.
+The Duka One is a one room ventilationsystem with a heat exchanger. It is a Danish product and youi can read more about it [here](
+https://dukaventilation.dk/produkter/1-rums-ventilationsloesninger/duka-one-s6w). It may be sold in other countries too. 
+I did contact the manufacture to get more information in case they aready have a public API for connection to the device, but I did not get any reply at all.
+All the information about how to communicate with the device has been extracted by looking at the packages send to/from the device, so there are still some unknon data in the packets.I have it working on 2 devices so I assume it is ok.
+
+The primary goal for this module is to make an interface from Home Assistant to Duka One
 
 The module implements:
 
@@ -14,9 +19,7 @@ The module implements:
 
 See the examples.py file
 
-For more infomation about this python module look at
-
-http://www.dingus.dk/
+When I have been using it for a while I will make a post about it on my blog http://www.dingus.dk/
 
 # License
 
