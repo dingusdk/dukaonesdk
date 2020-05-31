@@ -21,10 +21,11 @@ class Mode(IntEnum):
 class Device:
     """A class representing a single Duke One Device """
 
-    def __init__(self, deviceid: str, password: str = None, onchange=None):
+    def __init__(self, deviceid: str, password: str = None,
+                 ip_address: str = "<broadcast>", onchange=None):
         self._id = deviceid
         self._password = password
-        self._ip = "192.168.1.255"
+        self._ip = ip_address
         self._speed: Speed = None
         self._mode: Mode = None
         self._changeevent = onchange

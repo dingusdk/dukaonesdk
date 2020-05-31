@@ -25,9 +25,10 @@ class DukaClient:
         self._notifyrunning = False
         self._notifythread.join()
 
-    def add_device(self, device_id: str, password: str = None, onchange=None) -> Device:
+    def add_device(self, device_id: str, password: str = None,
+                   ip_address: str = "<broadcast>", onchange=None) -> Device:
         """Add a new device."""
-        device: Device = Device(device_id, password, onchange)
+        device: Device = Device(device_id, password, ip_address, onchange)
         self._devices[device_id] = device
         return device
 
