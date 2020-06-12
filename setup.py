@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='dukaonesdk',
-    version='0.9.1',
+    version='0.9.2',
     description='Duka One ventilation SDK',
     long_description=("SDK for connection to the Duka One S6W ventilation. "
                       "Made for interfacing to home assistant"),

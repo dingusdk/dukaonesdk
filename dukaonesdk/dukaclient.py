@@ -32,6 +32,12 @@ class DukaClient:
         self._devices[device_id] = device
         return device
 
+    def remove_device(self, device_id):
+        """Remove an existing device"""
+        device: Device = self.get_device(device_id)
+        if device is not None:
+            del self._devices[device]
+
     def get_device(self, device_id: str) -> Device:
         """Get a device by device id."""
         if not device_id in self._devices:
@@ -77,6 +83,28 @@ class DukaClient:
         packet.initialize_mode_cmd(device, mode)
         data = packet.data
         self.__send_data(device, data)
+
+    def validate_device(self, device_id: str, password: str = None,
+                        ip_address: str = "<broadcast>") -> bool:
+        """Validate if a device exist"""                    
+        device: Device = self.get_device( device_id)                        
+        # Is the device already added
+        if device is not None:
+            return True
+        device = self.add_device(device_id,password,ip_address)            
+        try:
+            self.__update_device_status(device)
+            # 2 sec timeout
+            timeout = time.time() + 2000*1000
+            while True:
+                if device.mode is not None:
+                    return True
+                if time.time() > timeout:
+                    break
+                time.sleep( 0.1)
+            return False                    
+        finally:
+            self.remove_device(device)
 
     def __update_device_status(self, device: Device):
         """ Update the device status from the DukaClient

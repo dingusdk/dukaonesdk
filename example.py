@@ -20,7 +20,12 @@ def main():
         device_id = file.readline().replace('\n', '')
     # initialize the DukaClient and add the device
     client: DukaClient = DukaClient()
+    if not client.validate_device(device_id):
+        print("Device does not respond")
+        return
+
     mydevice = client.add_device(device_id, onchange=onchange)
+    print("Device added")
 
     while True:
         print("Press one key and enter. 1-3 for speed, 0 for off,b,n,m for mode, q for quit")
