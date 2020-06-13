@@ -27,9 +27,12 @@ class DukaClient:
 
     def add_device(self, device_id: str, password: str = None,
                    ip_address: str = "<broadcast>", onchange=None) -> Device:
-        """Add a new device."""
-        device: Device = Device(device_id, password, ip_address, onchange)
-        self._devices[device_id] = device
+        """Add a new device. If the device already exist the current one will
+        be returned"""
+        device: Device = self.get_device(device_id)
+        if device is None:
+            device = Device(device_id, password, ip_address, onchange)
+            self._devices[device_id] = device
         return device
 
     def remove_device(self, device_id):
@@ -43,6 +46,10 @@ class DukaClient:
         if not device_id in self._devices:
             return None
         return self._devices[device_id]
+
+    def get_device_count(self):
+        """Return the number of devices"""
+        return len(self._devices)
 
     def set_speed(self, device: Device, speed: Speed):
         """Set the speed of the specified device"""
@@ -95,7 +102,7 @@ class DukaClient:
         try:
             self.__update_device_status(device)
             # 2 sec timeout
-            timeout = time.time() + 2000*1000
+            timeout = time.time() + 2
             while True:
                 if device.mode is not None:
                     return True
