@@ -20,11 +20,12 @@ def main():
         device_id = file.readline().replace('\n', '')
     # initialize the DukaClient and add the device
     client: DukaClient = DukaClient()
-    if not client.validate_device(device_id):
+    mydevice: Device = client.validate_device(device_id)
+    if mydevice is None:
         print("Device does not respond")
         return
 
-    mydevice = client.add_device(device_id, onchange=onchange)
+    mydevice = client.add_device(device_id, ip_address=mydevice.ip_address, onchange=onchange)
     print("Device added")
 
     while True:
