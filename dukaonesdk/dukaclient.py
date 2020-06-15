@@ -16,6 +16,8 @@ class DukaClient:
         self._devices = {}
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        self._sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+
         self._notifyrunning = False
         self._notifythread = threading.Thread(target=self.__notify_fn)
         self._notifythread.start()
@@ -142,28 +144,28 @@ class DukaClient:
     def __notify_fn(self):
         self._notifyrunning = True
         self._sock.bind(("0.0.0.0", 4000))
-        self._sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        self._sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
         self._sock.settimeout(1.0)
-        while self._notifyrunning:
-            try:
-                data, addr = self._sock.recvfrom(1024)
-            except socket.timeout:
-                self.__update_all_device_status()
-                continue
-            packet = DukaPacket()
-            if not packet.initialize_from_data(data):
-                continue
-            if not packet.is_response_from_device():
-                continue
-            device_id = packet.response_device_id()
-            if device_id not in self._devices:
-                continue
-            device: Device = self._devices[device_id]
-            ip_address = addr[0]
-            speed = packet.response_speed()
-            if not packet.response_is_on():
-                speed = Speed.OFF
-            mode = packet.response_mode()
-            device.update(ip_address, speed, mode)
-        self._sock.close()
+        try:
+            while self._notifyrunning:
+                try:
+                    data, addr = self._sock.recvfrom(1024)
+                except socket.timeout:
+                    self.__update_all_device_status()
+                    continue
+                packet = DukaPacket()
+                if not packet.initialize_from_data(data):
+                    continue
+                if not packet.is_response_from_device():
+                    continue
+                device_id = packet.response_device_id()
+                if device_id not in self._devices:
+                    continue
+                device: Device = self._devices[device_id]
+                ip_address = addr[0]
+                speed = packet.response_speed()
+                if not packet.response_is_on():
+                    speed = Speed.OFF
+                mode = packet.response_mode()
+                device.update(ip_address, speed, mode)
+        finally:
+            self._sock.close()
