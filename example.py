@@ -23,26 +23,25 @@ def main():
     mydevice: Device = client.validate_device(device_id)
     if mydevice is None:
         print("Device does not respond")
-        return
+    else:
+        mydevice = client.add_device(device_id, ip_address=mydevice.ip_address, onchange=onchange)
+        print("Device added")
 
-    mydevice = client.add_device(device_id, ip_address=mydevice.ip_address, onchange=onchange)
-    print("Device added")
-
-    while True:
-        print("Press one key and enter. 1-3 for speed, 0 for off,b,n,m for mode, q for quit")
-        char = sys.stdin.read(2)[0]
-        if char == 'q':
-            break
-        if char >= '0' and char <= '3':
-            client.set_speed(mydevice, ord(char) - ord('0'))
-        if char == '9':
-            client.turn_on(mydevice)
-        if char == 'b':
-            client.set_mode(mydevice, Mode.ONEWAY)
-        if char == 'n':
-            client.set_mode(mydevice, Mode.TWOWAY)
-        if char == 'm':
-            client.set_mode(mydevice, Mode.IN)
+        while True:
+            print("Press one key and enter. 1-3 for speed, 0 for off,b,n,m for mode, q for quit")
+            char = sys.stdin.read(2)[0]
+            if char == 'q':
+                break
+            if char >= '0' and char <= '3':
+                client.set_speed(mydevice, ord(char) - ord('0'))
+            if char == '9':
+                client.turn_on(mydevice)
+            if char == 'b':
+                client.set_mode(mydevice, Mode.ONEWAY)
+            if char == 'n':
+                client.set_mode(mydevice, Mode.TWOWAY)
+            if char == 'm':
+                client.set_mode(mydevice, Mode.IN)
 
     print("Closing")
     client.close()

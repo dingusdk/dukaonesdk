@@ -14,16 +14,15 @@ class DukaClient:
 
     def __init__(self):
         self._devices = {}
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        self._sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+        self._sock = None
+        self._socket_listening = False
 
         self._notifyrunning = False
         self._notifythread = threading.Thread(target=self.__notify_fn)
         self._notifythread.start()
 
     def close(self):
-        """Close the client and end the notify thread. Wait for the thread to end."""
+        """Close the client and end the notify thread to end. Wait for the thread to end."""
         self._notifyrunning = False
         self._notifythread.join()
 
@@ -129,29 +128,99 @@ class DukaClient:
         self.__send_data(device, data)
 
     def __update_all_device_status(self):
+        """Send an update command to all devices"""
         for device_id in self._devices:
             self.__update_device_status(self._devices[device_id])
 
     def __send_data(self, device: Device, data):
+        """Send a data packet to a device.
+        Protect it with a mutex to prevent multiple threads doint it at the same time"""
+        self.__wait_for_socket()
         with DukaClient._mutex:
             self._sock.sendto(data, (device.ip_address, 4000))
+
+    def __wait_for_socket(self):
+        """Wait for notify thread to create socket """
+        if self._socket_listening:
+            return
+        timeout = time.time() + 3
+        while True:
+            time.sleep( 0.1)
+            if self._socket_listening:
+                return
+            if time.time() > timeout:
+                raise Exception( "Timeout waiting for socket connection") 
 
     def __print_data(self, data):
         """Print data in hex - for debugging purpose """
         print(''.join('{:02x}'.format(x) for x in data))
 
-
-    def __notify_fn(self):
-        self._notifyrunning = True
+    
+    def __open_socket(self):
+        """Open the socket and set the  options on the socket"""
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        self._sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
         self._sock.bind(("0.0.0.0", 4000))
         self._sock.settimeout(1.0)
+        self._socket_listening = True
+
+    def __close_socket(self):
+        """Close the socket"""
+        self._socket_listening = False
+        try:
+            self._sock.close()
+        except:
+            # just ignore if closing fails
+            return            
+
+    def __open_socket_with_retry(self):
+        """Open the socket and retry with 1 sec interval in case of errors
+        Skip if notify thread is not running.
+        """
+        while self._notifyrunning and not self._socket_listening:
+            try:
+                self.__open_socket()
+            except socket.error:
+                self.__close_socket()
+                # wait 1 sec and try again
+                time.sleep(1)
+            except OSError:
+                self.__close_socket()
+                # wait 1 sec and try again
+                time.sleep(1)
+
+    def __receive_data(self): 
+        """Receive data from the socket.
+        If there is a timeout. Send an update command the the devices.
+        Return (None, None) where there is no data to process
+        """
+        try:
+            data, addr = self._sock.recvfrom(1024)
+            return (data, addr)
+        except socket.timeout:
+            try:
+                self.__update_all_device_status()
+            except socket.error:
+                # recreate soket on error
+                self.__close_socket()
+        except socket.error:
+            # recreate soket on error
+            self.__close_socket()
+        return (None, None)
+
+    def __notify_fn(self):
+        """Notify thread listening for responses from duka devices.
+        This will handle recreating of the socket in case of network errors
+        """
+        self._notifyrunning = True
         try:
             while self._notifyrunning:
-                try:
-                    data, addr = self._sock.recvfrom(1024)
-                except socket.timeout:
-                    self.__update_all_device_status()
+                self.__open_socket_with_retry()
+                data, addr = self.__receive_data()
+                if data is None: 
                     continue
+
                 packet = DukaPacket()
                 if not packet.initialize_from_data(data):
                     continue
@@ -168,4 +237,5 @@ class DukaClient:
                 mode = packet.response_mode()
                 device.update(ip_address, speed, mode)
         finally:
-            self._sock.close()
+            self.__close_socket()
+            self._notifyrunning = False
