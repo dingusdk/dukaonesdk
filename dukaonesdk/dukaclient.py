@@ -170,8 +170,9 @@ class DukaClient:
         self._socket_listening = False
         try:
             self._sock.close()
-        except:
+            # pylint: disable=bare-except
             # just ignore if closing fails
+        except:
             return            
 
     def __open_socket_with_retry(self):
@@ -181,10 +182,6 @@ class DukaClient:
         while self._notifyrunning and not self._socket_listening:
             try:
                 self.__open_socket()
-            except socket.error:
-                self.__close_socket()
-                # wait 1 sec and try again
-                time.sleep(1)
             except OSError:
                 self.__close_socket()
                 # wait 1 sec and try again
