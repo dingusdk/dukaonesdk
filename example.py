@@ -11,7 +11,11 @@ from dukaonesdk.device import Device, Mode
 
 def onchange(device: Device):
     """Callback function when device changes"""
-    print(f"ip: {device.ip_address} speed: {device.speed}, mode: {device.mode}")
+    print(
+        f"ip: {device.ip_address}"
+        f" speed: {device.speed},"
+        f" mode: {device.mode}")
+
 
 def main():
     """Main example """
@@ -24,11 +28,14 @@ def main():
     if mydevice is None:
         print("Device does not respond")
     else:
-        mydevice = client.add_device(device_id, ip_address=mydevice.ip_address, onchange=onchange)
+        mydevice = client.add_device(device_id,
+                                     ip_address=mydevice.ip_address,
+                                     onchange=onchange)
         print("Device added")
 
         while True:
-            print("Press one key and enter. 1-3 for speed, 0 for off,b,n,m for mode, q for quit")
+            print("Press one key and enter. "
+                  "1-3 for speed, 0 for off,b,n,m for mode, q for quit")
             char = sys.stdin.read(2)[0]
             if char == 'q':
                 break
@@ -48,5 +55,6 @@ def main():
     print("Done")
 
     exit(0)
+
 
 main()

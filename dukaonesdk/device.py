@@ -1,5 +1,6 @@
 """Implements the duka one device class """
-from  enum import IntEnum
+from enum import IntEnum
+
 
 class Speed(IntEnum):
     """Device speed options available """
@@ -53,7 +54,7 @@ class Device:
         return self._speed
 
     @property
-    def mode(self)  -> Mode:
+    def mode(self) -> Mode:
         """Return the mode of the device"""
         return self._mode
 

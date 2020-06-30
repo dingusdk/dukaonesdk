@@ -1,5 +1,6 @@
 """Implements a class for the UDP data packet"""
-from  .device import Device, Mode, Speed
+from .device import Device, Mode, Speed
+
 
 class DukaPacket:
     """A udp data packet to/from the duka device."""
@@ -24,8 +25,8 @@ class DukaPacket:
         if size <= self._datastart:
             return False
         checksum = self.__calc_checksum()
-        return self._data[size-2] == (checksum & 0xff) and self._data[size-1] == (checksum >> 8)
-
+        datachecksum = self._data[size-2] + (self._data[size-1] << 8)
+        return checksum == datachecksum
 
     def initialize_speed_cmd(self, device: Device, speed: Speed):
         """Initialize a speed command packet to be sent to a device"""
@@ -40,7 +41,6 @@ class DukaPacket:
         self.__add_byte(0x72)
         self.__add_checksum()
 
-
     def initialize_mode_cmd(self, device: Device, mode: Mode):
         """Intialize a mode command packet to be sent to a device"""
         self.__build_data(device.device_id, device.password, 3)
@@ -49,7 +49,6 @@ class DukaPacket:
         self.__add_byte(mode)
         self.__add_checksum()
 
-
     def initialize_on_cmd(self, device: Device):
         """Initialize a ON command packet to be sent to a device"""
         self.__build_data(device.device_id, device.password, 3)
@@ -57,7 +56,6 @@ class DukaPacket:
         self.__add_byte(0x01)
         self.__add_byte(0x01)
         self.__add_checksum()
-
 
     def initialize_off_cmd(self, device: Device):
         """Initialize a Off command packet to be sent to a device"""
@@ -104,7 +102,7 @@ class DukaPacket:
     def is_response_from_device(self) -> bool:
         """Return true of the packet is from a device"""
         responsetype = self._data[self._datastart]
-        return  responsetype == 0x06
+        return responsetype == 0x06
 
     def response_device_id(self) -> str:
         """Return the device id from the packet"""
@@ -146,7 +144,6 @@ class DukaPacket:
         self._data[self._pos] = byte
         self._pos += 1
 
-
     def __build_data(self, device_id: str, password: str, size: int):
         """Build a packet of the specified size"""
         totalsize = 5+len(device_id)+len(password)+size+2
@@ -163,14 +160,11 @@ class DukaPacket:
             self.__add_byte(ord(char))
         self._datastart = self._pos
 
-
-
     def __add_checksum(self):
         """Add a checksum to the packet"""
         checksum = self. __calc_checksum()
         self.__add_byte(checksum & 0xff)
         self.__add_byte(checksum >> 8)
-
 
     def __calc_checksum(self) -> int:
         """Calculate the check sum for the packet"""

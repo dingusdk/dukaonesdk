@@ -8,6 +8,7 @@ from socket import SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST
 from .device import Device, Mode, Speed
 from .dukapacket import DukaPacket
 
+
 class DukaClient:
     """Client object for making connection to the duka devices."""
     _mutex = threading.Lock()
@@ -22,7 +23,8 @@ class DukaClient:
         self._notifythread.start()
 
     def close(self):
-        """Close the client and end the notify thread to end. Wait for the thread to end."""
+        """Close the client and end the notify thread to end. Wait for the
+        thread to end."""
         self._notifyrunning = False
         self._notifythread.join()
 
@@ -45,7 +47,7 @@ class DukaClient:
 
     def get_device(self, device_id: str) -> Device:
         """Get a device by device id."""
-        if not device_id in self._devices:
+        if device_id not in self._devices:
             return None
         return self._devices[device_id]
 
@@ -76,7 +78,6 @@ class DukaClient:
         data = packet.data
         self.__send_data(device, data)
 
-
     def turn_on(self, device: Device):
         """Turn on the specified device"""
         packet = DukaPacket()
@@ -98,12 +99,12 @@ class DukaClient:
         """Validate if a device exist and repsonds.
            Returns None if the device does not exist
            Returns the Device object if it exist
-         """                    
-        device: Device = self.get_device( device_id)                        
+         """
+        device: Device = self.get_device(device_id)
         # Is the device already added
         if device is not None:
             return device
-        device = self.add_device(device_id,password,ip_address)            
+        device = self.add_device(device_id, password, ip_address)
         try:
             self.__update_device_status(device)
             # 2 sec timeout
@@ -113,8 +114,8 @@ class DukaClient:
                     return device
                 if time.time() > timeout:
                     break
-                time.sleep( 0.1)
-            return None                    
+                time.sleep(0.1)
+            return None
         finally:
             self.remove_device(device.device_id)
 
@@ -134,7 +135,8 @@ class DukaClient:
 
     def __send_data(self, device: Device, data):
         """Send a data packet to a device.
-        Protect it with a mutex to prevent multiple threads doint it at the same time"""
+        Protect it with a mutex to prevent multiple threads doint it at the
+        same time"""
         self.__wait_for_socket()
         with DukaClient._mutex:
             self._sock.sendto(data, (device.ip_address, 4000))
@@ -145,17 +147,16 @@ class DukaClient:
             return
         timeout = time.time() + 3
         while True:
-            time.sleep( 0.1)
+            time.sleep(0.1)
             if self._socket_listening:
                 return
             if time.time() > timeout:
-                raise Exception( "Timeout waiting for socket connection") 
+                raise Exception("Timeout waiting for socket connection")
 
     def __print_data(self, data):
         """Print data in hex - for debugging purpose """
         print(''.join('{:02x}'.format(x) for x in data))
 
-    
     def __open_socket(self):
         """Open the socket and set the  options on the socket"""
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -172,8 +173,8 @@ class DukaClient:
             self._sock.close()
             # pylint: disable=bare-except
             # just ignore if closing fails
-        except:
-            return            
+        except OSError:
+            return
 
     def __open_socket_with_retry(self):
         """Open the socket and retry with 1 sec interval in case of errors
@@ -187,7 +188,7 @@ class DukaClient:
                 # wait 1 sec and try again
                 time.sleep(1)
 
-    def __receive_data(self): 
+    def __receive_data(self):
         """Receive data from the socket.
         If there is a timeout. Send an update command the the devices.
         Return (None, None) where there is no data to process
@@ -215,7 +216,7 @@ class DukaClient:
             while self._notifyrunning:
                 self.__open_socket_with_retry()
                 data, addr = self.__receive_data()
-                if data is None: 
+                if data is None:
                     continue
 
                 packet = DukaPacket()
