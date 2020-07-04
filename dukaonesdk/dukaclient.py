@@ -73,6 +73,8 @@ class DukaClient:
 
     def turn_off(self, device: Device):
         """Turn off the specified device"""
+        if device.speed == Speed.OFF:
+            return
         packet = DukaPacket()
         packet.initialize_off_cmd(device)
         data = packet.data
@@ -80,6 +82,8 @@ class DukaClient:
 
     def turn_on(self, device: Device):
         """Turn on the specified device"""
+        if device.speed != Speed.OFF:
+            return
         packet = DukaPacket()
         packet.initialize_on_cmd(device)
         data = packet.data

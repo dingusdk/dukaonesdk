@@ -35,7 +35,7 @@ def main():
 
         while True:
             print("Press one key and enter. "
-                  "1-3 for speed, 0 for off,b,n,m for mode, q for quit")
+                  "1-3 for speed, 0=off, 9=on,b,n,m for mode, q for quit")
             char = sys.stdin.read(2)[0]
             if char == 'q':
                 break
