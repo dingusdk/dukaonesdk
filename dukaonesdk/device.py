@@ -29,6 +29,8 @@ class Device:
         self._ip = ip_address
         self._speed: Speed = None
         self._mode: Mode = None
+        self._filter_alarm = False
+        self._filter_timer = None
         self._changeevent = onchange
 
     @property
@@ -58,7 +60,17 @@ class Device:
         """Return the mode of the device"""
         return self._mode
 
-    def update(self, ip_address: str, speed: Speed, mode: Mode):
+    @property
+    def filter_alarm(self) -> bool:
+        """Return the filter alarm of the device"""
+        return self._filter_alarm
+
+    @property
+    def filter_timer(self) -> int:
+        return self._filter_timer
+
+    def update(self, ip_address: str, speed: Speed, mode: Mode,
+               filter_alarm: bool, filter_timer: int):
         """Update the device with data recieved. Called by the dukaclient"""
         haschange = False
         if ip_address is not None and ip_address != self._ip:
@@ -69,6 +81,12 @@ class Device:
             haschange = True
         if mode is not None and mode != self._mode:
             self._mode = mode
+            haschange = True
+        if filter_alarm is not None and filter_alarm != self._filter_alarm:
+            self._filter_alarm = filter_alarm
+            haschange = True
+        if filter_timer is not None and filter_timer != self._filter_timer:
+            self._filter_timer = filter_timer
             haschange = True
         if haschange and self._changeevent is not None:
             self._changeevent(self)

@@ -7,6 +7,7 @@ from socket import SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST
 
 from .device import Device, Mode, Speed
 from .dukapacket import DukaPacket
+from .responsepacket import ResponsePacket
 
 
 class DukaClient:
@@ -21,6 +22,7 @@ class DukaClient:
         self._notifyrunning = False
         self._notifythread = threading.Thread(target=self.__notify_fn)
         self._notifythread.start()
+        self._found_device_callback = None
 
     def close(self):
         """Close the client and end the notify thread to end. Wait for the
@@ -54,6 +56,14 @@ class DukaClient:
     def get_device_count(self):
         """Return the number of devices"""
         return len(self._devices)
+
+    def search_devices(self, callback):
+        self._found_device_callback = callback
+        packet = DukaPacket()
+        packet.initialize_search_cmd()
+        self.__wait_for_socket()
+        with DukaClient._mutex:
+            self._sock.sendto(packet.data, ("<broadcast>", 4000))
 
     def set_speed(self, device: Device, speed: Speed):
         """Set the speed of the specified device"""
@@ -97,6 +107,12 @@ class DukaClient:
         packet.initialize_mode_cmd(device, mode)
         data = packet.data
         self.__send_data(device, data)
+
+    def reset_filter_alarm(self, device: Device):
+        """Reset the filter alarm"""
+        packet = DukaPacket()
+        packet.initialize_reset_filter_alarm_cmd(device)
+        self.__send_data(device, packet.data)
 
     def validate_device(self, device_id: str, password: str = None,
                         ip_address: str = "<broadcast>") -> Device:
@@ -222,22 +238,26 @@ class DukaClient:
                 data, addr = self.__receive_data()
                 if data is None:
                     continue
+#                print(''.join('{:02x}'.format(x) for x in data))
 
-                packet = DukaPacket()
+                packet = ResponsePacket()
                 if not packet.initialize_from_data(data):
                     continue
-                if not packet.is_response_from_device():
+                if packet.device_id not in self._devices:
+                    if packet.search_device_id is not None and \
+                       self._found_device_callback is not None:
+                        self._found_device_callback(packet.search_device_id)
                     continue
-                device_id = packet.response_device_id()
-                if device_id not in self._devices:
-                    continue
-                device: Device = self._devices[device_id]
+                device: Device = self._devices[packet.device_id]
                 ip_address = addr[0]
-                speed = packet.response_speed()
-                if not packet.response_is_on():
+                speed = packet.speed
+                if packet.is_on is not None and not packet.is_on:
                     speed = Speed.OFF
-                mode = packet.response_mode()
-                device.update(ip_address, speed, mode)
+                device.update(ip_address,
+                              speed,
+                              packet.mode,
+                              packet.filter_alarm,
+                              packet.filter_timer)
         finally:
             self.__close_socket()
             self._notifyrunning = False
