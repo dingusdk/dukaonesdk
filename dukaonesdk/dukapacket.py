@@ -45,6 +45,16 @@ class DukaPacket:
         self.__add_byte(speed)
         self.__add_checksum()
 
+    def initialize_manualspeed_cmd(self, device: Device, manualspeed: int):
+        """Initialize a manual speed command packet to be sent to a device
+        The manuals speed is in the interval 0-255
+        """
+        self.__build_data(device.device_id, device.password)
+        self.__add_byte(DukaPacket.Func.WRITEREAD.value)
+        self.__add_byte(DukaPacket.Parameters.MANUAL_SPEED.value)
+        self.__add_byte(manualspeed)
+        self.__add_checksum()
+
     def initialize_mode_cmd(self, device: Device, mode: Mode):
         """Intialize a mode command packet to be sent to a device"""
         self.__build_data(device.device_id, device.password)
@@ -76,6 +86,7 @@ class DukaPacket:
         self.__add_byte(self.Parameters.ON_OFF.value)
         self.__add_byte(self.Parameters.VENTILATION_MODE.value)
         self.__add_byte(self.Parameters.SPEED.value)
+        self.__add_byte(self.Parameters.MANUAL_SPEED.value)
         self.__add_byte(self.Parameters.FILTER_ALARM.value)
         self.__add_byte(self.Parameters.FILTER_TIMER.value)
         self.__add_checksum()

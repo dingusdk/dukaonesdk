@@ -57,6 +57,7 @@ class ResponsePacket (DukaPacket):
         self.device_password = None
         self.is_on = None
         self.speed = None
+        self.manualspeed = None
         self.mode = None
         self.filter_alarm = None
         self.filter_timer = None
@@ -118,6 +119,8 @@ class ResponsePacket (DukaPacket):
                 self.is_on = self._data[self._pos] != 0
             elif parameter == self.Parameters.SPEED.value:
                 self.speed = self._data[self._pos]
+            elif parameter == self.Parameters.MANUAL_SPEED.value:
+                self.manualspeed = self._data[self._pos]
             elif parameter == self.Parameters.VENTILATION_MODE.value:
                 self.mode = self._data[self._pos]
             elif parameter == self.Parameters.FILTER_ALARM.value:

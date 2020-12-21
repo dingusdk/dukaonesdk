@@ -81,6 +81,17 @@ class DukaClient:
         data = packet.data
         self.__send_data(device, data)
 
+    def set_manual_speed(self, device: Device, manualspeed: int):
+        """Set the manual speed of the specified device"""
+        if device.speed != Speed.MANUAL:
+            self.set_speed(device, Speed.MANUAL)
+            time.sleep(0.2)
+
+        packet = DukaPacket()
+        packet.initialize_manualspeed_cmd(device, manualspeed)
+        data = packet.data
+        self.__send_data(device, data)
+
     def turn_off(self, device: Device):
         """Turn off the specified device"""
         if device.speed == Speed.OFF:
@@ -255,6 +266,7 @@ class DukaClient:
                     speed = Speed.OFF
                 device.update(ip_address,
                               speed,
+                              packet.manualspeed,
                               packet.mode,
                               packet.filter_alarm,
                               packet.filter_timer)

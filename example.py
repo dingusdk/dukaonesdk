@@ -15,6 +15,7 @@ def onchange(device: Device):
     print(
         f"ip: {device.ip_address}"
         f" speed: {device.speed},"
+        f" manualspeed: {device.manualspeed},"
         f" mode: {device.mode},"
         f" filter alarm: {device.filter_alarm},"
         f" filter timer; {device.filter_timer} minutes")
@@ -52,6 +53,9 @@ def main():
                 break
             if char >= '0' and char <= '3':
                 client.set_speed(mydevice, ord(char) - ord('0'))
+            if char >= '4' and char <= '8':
+                manualspeed = ((ord(char) - ord('4')) * 50) + 50
+                client.set_manual_speed(mydevice, manualspeed)
             if char == '9':
                 client.turn_on(mydevice)
             if char == 'b':

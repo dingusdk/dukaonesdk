@@ -8,6 +8,7 @@ class Speed(IntEnum):
     LOW = 1
     MEDIUM = 2
     HIGH = 3
+    MANUAL = 255
 
 
 class Mode(IntEnum):
@@ -29,6 +30,7 @@ class Device:
         self._ip = ip_address
         self._speed: Speed = None
         self._mode: Mode = None
+        self._manualspeed: int = None
         self._filter_alarm = False
         self._filter_timer = None
         self._changeevent = onchange
@@ -56,6 +58,11 @@ class Device:
         return self._speed
 
     @property
+    def manualspeed(self) -> int:
+        """Return the manual speed of the device"""
+        return self._manualspeed
+
+    @property
     def mode(self) -> Mode:
         """Return the mode of the device"""
         return self._mode
@@ -69,8 +76,8 @@ class Device:
     def filter_timer(self) -> int:
         return self._filter_timer
 
-    def update(self, ip_address: str, speed: Speed, mode: Mode,
-               filter_alarm: bool, filter_timer: int):
+    def update(self, ip_address: str, speed: Speed, manualspeed: int,
+               mode: Mode, filter_alarm: bool, filter_timer: int):
         """Update the device with data recieved. Called by the dukaclient"""
         haschange = False
         if ip_address is not None and ip_address != self._ip:
@@ -78,6 +85,9 @@ class Device:
             haschange = True
         if speed is not None and speed != self._speed:
             self._speed = speed
+            haschange = True
+        if manualspeed is not None and manualspeed != self._manualspeed:
+            self._manualspeed = manualspeed
             haschange = True
         if mode is not None and mode != self._mode:
             self._mode = mode
