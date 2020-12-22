@@ -16,6 +16,7 @@ def onchange(device: Device):
         f"ip: {device.ip_address}"
         f" speed: {device.speed},"
         f" manualspeed: {device.manualspeed},"
+        f" fan1rpm: {device.fan1rpm},"
         f" mode: {device.mode},"
         f" filter alarm: {device.filter_alarm},"
         f" filter timer; {device.filter_timer} minutes")

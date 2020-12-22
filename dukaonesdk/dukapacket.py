@@ -1,6 +1,8 @@
 """Implements a class for the UDP data packet"""
 from enum import Enum
-from .device import Device, Mode, Speed
+from .device import Device
+from .mode import Mode
+from .speed import Speed
 
 
 class DukaPacket:
@@ -17,6 +19,7 @@ class DukaPacket:
         ON_OFF = 0x01
         SPEED = 0x02
         MANUAL_SPEED = 0x44
+        FAN1RPM = 0x4A
         FILTER_TIMER = 0x64
         RESET_FILTER_TIMER = 0x65
         SEARCH = 0x7C
@@ -87,6 +90,7 @@ class DukaPacket:
         self.__add_byte(self.Parameters.VENTILATION_MODE.value)
         self.__add_byte(self.Parameters.SPEED.value)
         self.__add_byte(self.Parameters.MANUAL_SPEED.value)
+        self.__add_byte(self.Parameters.FAN1RPM.value)
         self.__add_byte(self.Parameters.FILTER_ALARM.value)
         self.__add_byte(self.Parameters.FILTER_TIMER.value)
         self.__add_checksum()

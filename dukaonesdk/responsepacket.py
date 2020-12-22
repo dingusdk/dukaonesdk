@@ -1,4 +1,6 @@
 """Implements a class for the UDP data packet"""
+from .mode import Mode
+from .speed import Speed
 from .dukapacket import DukaPacket
 
 
@@ -56,9 +58,10 @@ class ResponsePacket (DukaPacket):
         self.device_id = None
         self.device_password = None
         self.is_on = None
-        self.speed = None
+        self.speed: Speed = None
         self.manualspeed = None
-        self.mode = None
+        self.fan1rpm = None
+        self.mode: Mode = None
         self.filter_alarm = None
         self.filter_timer = None
         self.search_device_id = None
@@ -121,6 +124,9 @@ class ResponsePacket (DukaPacket):
                 self.speed = self._data[self._pos]
             elif parameter == self.Parameters.MANUAL_SPEED.value:
                 self.manualspeed = self._data[self._pos]
+            elif parameter == self.Parameters.FAN1RPM.value:
+                self.fan1rpm = (self._data[self._pos] +
+                                (self._data[self._pos+1] << 8))
             elif parameter == self.Parameters.VENTILATION_MODE.value:
                 self.mode = self._data[self._pos]
             elif parameter == self.Parameters.FILTER_ALARM.value:
@@ -133,4 +139,7 @@ class ResponsePacket (DukaPacket):
                 for i in range(self._pos, self._pos+16):
                     self.search_device_id += chr(self._data[i])
             self._pos += size
+        if self.is_on is not None and not self.is_on:
+            self.speed = Speed.OFF
+
         return True

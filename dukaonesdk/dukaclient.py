@@ -250,7 +250,6 @@ class DukaClient:
                 if data is None:
                     continue
 #                print(''.join('{:02x}'.format(x) for x in data))
-
                 packet = ResponsePacket()
                 if not packet.initialize_from_data(data):
                     continue
@@ -261,15 +260,39 @@ class DukaClient:
                     continue
                 device: Device = self._devices[packet.device_id]
                 ip_address = addr[0]
-                speed = packet.speed
-                if packet.is_on is not None and not packet.is_on:
-                    speed = Speed.OFF
-                device.update(ip_address,
-                              speed,
-                              packet.manualspeed,
-                              packet.mode,
-                              packet.filter_alarm,
-                              packet.filter_timer)
+                self.update_device(device, ip_address, packet)
         finally:
             self.__close_socket()
             self._notifyrunning = False
+
+    def update_device(self, device, ip_address: str, packet: ResponsePacket):
+        """Update the device with data recieved. Called by the dukaclient"""
+        haschange = False
+        if device._ip_address is not None and ip_address != device._ip_address:
+            self._ip_address = ip_address
+            haschange = True
+        if packet.speed is not None and packet.speed != device._speed:
+            device._speed = packet.speed
+            haschange = True
+        if (packet.manualspeed is not None and
+                packet.manualspeed != device._manualspeed):
+            device._manualspeed = packet.manualspeed
+            haschange = True
+        if packet.mode is not None and packet.mode != device._mode:
+            device._mode = packet.mode
+            haschange = True
+        if (packet.filter_alarm is not None and
+                packet.filter_alarm != device._filter_alarm):
+            device._filter_alarm = packet.filter_alarm
+            haschange = True
+        if (packet.filter_timer is not None and
+                packet.filter_timer != device._filter_timer):
+            device._filter_timer = packet.filter_timer
+            haschange = True
+        if haschange and device._changeevent is not None:
+            device._changeevent(device)
+        # note we do not want the fan rpm to trigger change event because it
+        # changes all the time
+        if packet.fan1rpm is not None and packet.fan1rpm != device._fan1rpm:
+            device._fan1rpm = packet.fan1rpm
+        return

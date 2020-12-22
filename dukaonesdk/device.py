@@ -1,23 +1,6 @@
 """Implements the duka one device class """
-from enum import IntEnum
-
-
-class Speed(IntEnum):
-    """Device speed options available """
-    OFF = 0
-    LOW = 1
-    MEDIUM = 2
-    HIGH = 3
-    MANUAL = 255
-
-
-class Mode(IntEnum):
-    """Device modes available
-    Note: The ONEWAY derection is decided by the dip switch on the device
-    """
-    ONEWAY = 0
-    TWOWAY = 1
-    IN = 2
+from .mode import Mode
+from .speed import Speed
 
 
 class Device:
@@ -27,10 +10,11 @@ class Device:
                  ip_address: str = "<broadcast>", onchange=None):
         self._id = deviceid
         self._password = password
-        self._ip = ip_address
+        self._ip_address = ip_address
         self._speed: Speed = None
         self._mode: Mode = None
         self._manualspeed: int = None
+        self._fan1rpm: int = None
         self._filter_alarm = False
         self._filter_timer = None
         self._changeevent = onchange
@@ -50,7 +34,7 @@ class Device:
     @property
     def ip_address(self) -> str:
         """Return the IP of the device"""
-        return self._ip
+        return self._ip_address
 
     @property
     def speed(self) -> Speed:
@@ -61,6 +45,11 @@ class Device:
     def manualspeed(self) -> int:
         """Return the manual speed of the device"""
         return self._manualspeed
+
+    @property
+    def fan1rpm(self) -> int:
+        """Return the fan1 rpm of the device"""
+        return self._fan1rpm
 
     @property
     def mode(self) -> Mode:
@@ -75,28 +64,3 @@ class Device:
     @property
     def filter_timer(self) -> int:
         return self._filter_timer
-
-    def update(self, ip_address: str, speed: Speed, manualspeed: int,
-               mode: Mode, filter_alarm: bool, filter_timer: int):
-        """Update the device with data recieved. Called by the dukaclient"""
-        haschange = False
-        if ip_address is not None and ip_address != self._ip:
-            self._ip = ip_address
-            haschange = True
-        if speed is not None and speed != self._speed:
-            self._speed = speed
-            haschange = True
-        if manualspeed is not None and manualspeed != self._manualspeed:
-            self._manualspeed = manualspeed
-            haschange = True
-        if mode is not None and mode != self._mode:
-            self._mode = mode
-            haschange = True
-        if filter_alarm is not None and filter_alarm != self._filter_alarm:
-            self._filter_alarm = filter_alarm
-            haschange = True
-        if filter_timer is not None and filter_timer != self._filter_timer:
-            self._filter_timer = filter_timer
-            haschange = True
-        if haschange and self._changeevent is not None:
-            self._changeevent(self)
