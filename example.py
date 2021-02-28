@@ -18,6 +18,7 @@ def onchange(device: Device):
         f" manualspeed: {device.manualspeed},"
         f" fan1rpm: {device.fan1rpm},"
         f" mode: {device.mode},"
+        f" humidity: {device.humidity},"
         f" filter alarm: {device.filter_alarm},"
         f" filter timer; {device.filter_timer} minutes")
 
@@ -36,7 +37,7 @@ def main():
     with open('.deviceid', 'r') as file:
         device_id = file.readline().replace('\n', '')
     # initialize the DukaClient and add the device
-    mydevice: Device = client.validate_device(device_id)
+    mydevice: Device = client.validate_device(device_id,ip_address='192.168.1.255')
     if mydevice is None:
         print("Device does not respond")
     else:

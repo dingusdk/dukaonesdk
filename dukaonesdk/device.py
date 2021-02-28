@@ -15,6 +15,7 @@ class Device:
         self._mode: Mode = None
         self._manualspeed: int = None
         self._fan1rpm: int = None
+        self._humidity: int = None
         self._filter_alarm = False
         self._filter_timer = None
         self._changeevent = onchange
@@ -64,3 +65,7 @@ class Device:
     @property
     def filter_timer(self) -> int:
         return self._filter_timer
+
+    @property
+    def humidity(self) -> int:
+        return self._humidity

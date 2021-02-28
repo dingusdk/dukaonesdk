@@ -138,8 +138,8 @@ class DukaClient:
         device = self.add_device(device_id, password, ip_address)
         try:
             self.__update_device_status(device)
-            # 2 sec timeout
-            timeout = time.time() + 2
+            # 4 sec timeout
+            timeout = time.time() + 4
             while True:
                 if device.mode is not None:
                     return device
@@ -249,7 +249,7 @@ class DukaClient:
                 data, addr = self.__receive_data()
                 if data is None:
                     continue
-#                print(''.join('{:02x}'.format(x) for x in data))
+                # print(''.join('{:02x}'.format(x) for x in data))
                 packet = ResponsePacket()
                 if not packet.initialize_from_data(data):
                     continue
@@ -288,6 +288,9 @@ class DukaClient:
         if (packet.filter_timer is not None and
                 packet.filter_timer != device._filter_timer):
             device._filter_timer = packet.filter_timer
+            haschange = True
+        if packet.humidity is not None and packet.humidity != device._humidity:
+            device._humidity = packet.humidity
             haschange = True
         if haschange and device._changeevent is not None:
             device._changeevent(device)

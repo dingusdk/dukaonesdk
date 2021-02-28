@@ -18,6 +18,7 @@ class DukaPacket:
     class Parameters(Enum):
         ON_OFF = 0x01
         SPEED = 0x02
+        CURRENT_HUMIDITY = 0x25
         MANUAL_SPEED = 0x44
         FAN1RPM = 0x4A
         FILTER_TIMER = 0x64
@@ -93,6 +94,7 @@ class DukaPacket:
         self.__add_byte(self.Parameters.FAN1RPM.value)
         self.__add_byte(self.Parameters.FILTER_ALARM.value)
         self.__add_byte(self.Parameters.FILTER_TIMER.value)
+        self.__add_byte(self.Parameters.CURRENT_HUMIDITY.value)
         self.__add_checksum()
 
     def initialize_reset_filter_alarm_cmd(self, device: Device):

@@ -61,6 +61,7 @@ class ResponsePacket (DukaPacket):
         self.speed: Speed = None
         self.manualspeed = None
         self.fan1rpm = None
+        self.humidity = None
         self.mode: Mode = None
         self.filter_alarm = None
         self.filter_timer = None
@@ -127,6 +128,8 @@ class ResponsePacket (DukaPacket):
             elif parameter == self.Parameters.FAN1RPM.value:
                 self.fan1rpm = (self._data[self._pos] +
                                 (self._data[self._pos+1] << 8))
+            elif parameter == self.Parameters.CURRENT_HUMIDITY.value:
+                self.humidity = self._data[self._pos]
             elif parameter == self.Parameters.VENTILATION_MODE.value:
                 self.mode = self._data[self._pos]
             elif parameter == self.Parameters.FILTER_ALARM.value:
