@@ -7,6 +7,7 @@ from .speed import Speed
 
 class DukaPacket:
     """A udp data packet to/from the duka device."""
+
     class Func(Enum):
         READ = 1
         WRITE = 2
@@ -26,8 +27,10 @@ class DukaPacket:
         SEARCH = 0x7C
         RESET_ALARMS = 0x80
         READ_ALARM = 0x83
+        READ_FIRMWARE_VERSION = 0x86
         FILTER_ALARM = 0x88
         VENTILATION_MODE = 0xB7
+        UNIT_TYPE = 0xB9
 
     def __init__(self):
         self._data = None
@@ -99,16 +102,25 @@ class DukaPacket:
 
     def initialize_reset_filter_alarm_cmd(self, device: Device):
         """Initialize a reset filter alarm command packet to be sent to a
-         device"""
+        device"""
         self.__build_data(device.device_id, device.password)
         self.__add_byte(self.Func.WRITE.value)
         self.__add_byte(self.Parameters.RESET_FILTER_TIMER.value)
         self.__add_checksum()
 
+    def initialize_get_firmware_cmd(self, device: Device):
+        """Initialize a reset filter alarm command packet to be sent to a
+        device"""
+        self.__build_data(device.device_id, device.password)
+        self.__add_byte(self.Func.READ.value)
+        self.__add_byte(self.Parameters.READ_FIRMWARE_VERSION.value)
+        self.__add_byte(self.Parameters.UNIT_TYPE.value)
+        self.__add_checksum()
+
     @property
     def data(self):
         """Return the data for the packet"""
-        return self._data[0:self._pos]
+        return self._data[0 : self._pos]
 
     def __add_byte(self, byte: int):
         """Add a byte to the packet"""
@@ -119,8 +131,8 @@ class DukaPacket:
         """Build a packet of the specified size"""
         self._data = bytearray(self.maxsize)
         self._pos = 0
-        self.__add_byte(0xfd)
-        self.__add_byte(0xfd)
+        self.__add_byte(0xFD)
+        self.__add_byte(0xFD)
         self.__add_byte(0x02)
         self.__add_byte(len(device_id))
         for char in device_id:
@@ -136,7 +148,7 @@ class DukaPacket:
     def __add_checksum(self):
         """Add a checksum to the packet"""
         checksum = self.calc_checksum(self._pos)
-        self.__add_byte(checksum & 0xff)
+        self.__add_byte(checksum & 0xFF)
         self.__add_byte(checksum >> 8)
 
     def calc_checksum(self, size) -> int:
@@ -144,4 +156,4 @@ class DukaPacket:
         checksum: int = 0
         for i in range(2, size):
             checksum += self._data[i]
-        return checksum & 0xffff
+        return checksum & 0xFFFF

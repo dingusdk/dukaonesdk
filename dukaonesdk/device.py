@@ -1,4 +1,5 @@
 """Implements the duka one device class """
+import time
 from .mode import Mode
 from .speed import Speed
 
@@ -6,8 +7,13 @@ from .speed import Speed
 class Device:
     """A class representing a single Duke One Device """
 
-    def __init__(self, deviceid: str, password: str = None,
-                 ip_address: str = "<broadcast>", onchange=None):
+    def __init__(
+        self,
+        deviceid: str,
+        password: str = None,
+        ip_address: str = "<broadcast>",
+        onchange=None,
+    ):
         self._id = deviceid
         self._password = password
         self._ip_address = ip_address
@@ -19,6 +25,9 @@ class Device:
         self._filter_alarm = False
         self._filter_timer = None
         self._changeevent = onchange
+        self._firmware_version = None
+        self._firmware_date = None
+        self._unit_type = None
 
     @property
     def device_id(self) -> str:
@@ -69,3 +78,24 @@ class Device:
     @property
     def humidity(self) -> int:
         return self._humidity
+
+    @property
+    def firmware_version(self) -> int:
+        timeout = time.time() + 2
+        while self._firmware_version is None and time.time() < timeout:
+            time.sleep(0.1)
+        return self._firmware_version
+
+    @property
+    def firmware_date(self) -> int:
+        timeout = time.time() + 2
+        while self._firmware_date is None and time.time() < timeout:
+            time.sleep(0.1)
+        return self._firmware_date
+
+    @property
+    def unit_type(self) -> int:
+        timeout = time.time() + 2
+        while self._unit_type is None and time.time() < timeout:
+            time.sleep(0.1)
+        return self._unit_type

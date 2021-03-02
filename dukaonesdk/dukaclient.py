@@ -12,6 +12,7 @@ from .responsepacket import ResponsePacket
 
 class DukaClient:
     """Client object for making connection to the duka devices."""
+
     _mutex = threading.Lock()
 
     def __init__(self):
@@ -30,14 +31,22 @@ class DukaClient:
         self._notifyrunning = False
         self._notifythread.join()
 
-    def add_device(self, device_id: str, password: str = None,
-                   ip_address: str = "<broadcast>", onchange=None) -> Device:
+    def add_device(
+        self,
+        device_id: str,
+        password: str = None,
+        ip_address: str = "<broadcast>",
+        onchange=None,
+    ) -> Device:
         """Add a new device. If the device already exist the current one will
         be returned"""
         device: Device = self.get_device(device_id)
         if device is None:
             device = Device(device_id, password, ip_address, onchange)
             self._devices[device_id] = device
+        packet = DukaPacket()
+        packet.initialize_get_firmware_cmd(device)
+        self.__send_data(device, packet.data)
         return device
 
     def remove_device(self, device_id):
@@ -125,12 +134,13 @@ class DukaClient:
         packet.initialize_reset_filter_alarm_cmd(device)
         self.__send_data(device, packet.data)
 
-    def validate_device(self, device_id: str, password: str = None,
-                        ip_address: str = "<broadcast>") -> Device:
+    def validate_device(
+        self, device_id: str, password: str = None, ip_address: str = "<broadcast>"
+    ) -> Device:
         """Validate if a device exist and repsonds.
-           Returns None if the device does not exist
-           Returns the Device object if it exist
-         """
+        Returns None if the device does not exist
+        Returns the Device object if it exist
+        """
         device: Device = self.get_device(device_id)
         # Is the device already added
         if device is not None:
@@ -151,8 +161,8 @@ class DukaClient:
             self.remove_device(device.device_id)
 
     def __update_device_status(self, device: Device):
-        """ Update the device status from the DukaClient
-            You should not call this youself
+        """Update the device status from the DukaClient
+        You should not call this youself
         """
         packet = DukaPacket()
         packet.initialize_status_cmd(device)
@@ -186,7 +196,7 @@ class DukaClient:
 
     def __print_data(self, data):
         """Print data in hex - for debugging purpose """
-        print(''.join('{:02x}'.format(x) for x in data))
+        print("".join("{:02x}".format(x) for x in data))
 
     def __open_socket(self):
         """Open the socket and set the  options on the socket"""
@@ -254,8 +264,10 @@ class DukaClient:
                 if not packet.initialize_from_data(data):
                     continue
                 if packet.device_id not in self._devices:
-                    if packet.search_device_id is not None and \
-                       self._found_device_callback is not None:
+                    if (
+                        packet.search_device_id is not None
+                        and self._found_device_callback is not None
+                    ):
                         self._found_device_callback(packet.search_device_id)
                     continue
                 device: Device = self._devices[packet.device_id]
@@ -274,24 +286,33 @@ class DukaClient:
         if packet.speed is not None and packet.speed != device._speed:
             device._speed = packet.speed
             haschange = True
-        if (packet.manualspeed is not None and
-                packet.manualspeed != device._manualspeed):
+        if packet.manualspeed is not None and packet.manualspeed != device._manualspeed:
             device._manualspeed = packet.manualspeed
             haschange = True
         if packet.mode is not None and packet.mode != device._mode:
             device._mode = packet.mode
             haschange = True
-        if (packet.filter_alarm is not None and
-                packet.filter_alarm != device._filter_alarm):
+        if (
+            packet.filter_alarm is not None
+            and packet.filter_alarm != device._filter_alarm
+        ):
             device._filter_alarm = packet.filter_alarm
             haschange = True
-        if (packet.filter_timer is not None and
-                packet.filter_timer != device._filter_timer):
+        if (
+            packet.filter_timer is not None
+            and packet.filter_timer != device._filter_timer
+        ):
             device._filter_timer = packet.filter_timer
             haschange = True
         if packet.humidity is not None and packet.humidity != device._humidity:
             device._humidity = packet.humidity
             haschange = True
+        if packet.firmware_version is not None:
+            device._firmware_version = packet.firmware_version
+        if packet.firmware_date is not None:
+            device._firmware_date = packet.firmware_date
+        if packet.unit_type is not None:
+            device._unit_type = packet.unit_type
         if haschange and device._changeevent is not None:
             device._changeevent(device)
         # note we do not want the fan rpm to trigger change event because it
