@@ -80,14 +80,14 @@ class Device:
         return self._humidity
 
     @property
-    def firmware_version(self) -> int:
+    def firmware_version(self) -> str:
         timeout = time.time() + 2
         while self._firmware_version is None and time.time() < timeout:
             time.sleep(0.1)
         return self._firmware_version
 
     @property
-    def firmware_date(self) -> int:
+    def firmware_date(self) -> str:
         timeout = time.time() + 2
         while self._firmware_date is None and time.time() < timeout:
             time.sleep(0.1)
