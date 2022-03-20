@@ -5,7 +5,7 @@ from .speed import Speed
 
 
 class Device:
-    """A class representing a single Duke One Device """
+    """A class representing a single Duke One Device"""
 
     def __init__(
         self,
@@ -31,7 +31,7 @@ class Device:
 
     @property
     def device_id(self) -> str:
-        """Return  the device id """
+        """Return  the device id"""
         return self._id
 
     @property
@@ -73,29 +73,37 @@ class Device:
 
     @property
     def filter_timer(self) -> int:
+        """Return the filter timer in minutes"""
         return self._filter_timer
 
     @property
     def humidity(self) -> int:
+        """Return the humidity."""
         return self._humidity
 
     @property
     def firmware_version(self) -> str:
-        timeout = time.time() + 2
-        while self._firmware_version is None and time.time() < timeout:
-            time.sleep(0.1)
+        """Return the firmware version of the duka one device"""
         return self._firmware_version
 
     @property
     def firmware_date(self) -> str:
-        timeout = time.time() + 2
-        while self._firmware_date is None and time.time() < timeout:
-            time.sleep(0.1)
+        """return the firmware date"""
         return self._firmware_date
 
     @property
     def unit_type(self) -> int:
-        timeout = time.time() + 2
-        while self._unit_type is None and time.time() < timeout:
-            time.sleep(0.1)
         return self._unit_type
+
+    def is_initialized(self):
+        """Returns True if the device has initilized.
+
+        The device is initialize once the get initial get firmware packet has been received.
+        This packet is send when the device is added to the client
+        """
+        return self.firmware_version is not None
+
+    def wait_for_initialize(self):
+        timeout = time.time() + 2
+        while self.firmware_version is None and time.time() < timeout:
+            time.sleep(0.1)
