@@ -21,6 +21,16 @@ See the examples.py file
 
 When I have been using it for a while I will make a post about it on my blog http://www.dingus.dk/
 
+## Other compatible devices
+
+There are several one "bands" of the duka one ventilator.
+* Blauberg Vento
+* Siku With several models.
+
+These should also work - I don't know which one is the orginal manufacture. Both Blauberg and Siku has documentation for the interface.
+
+[You can see the documentation from Blauberg here](https://blaubergventilatoren.de/uploads/download/b133_4_1en_01preview.pdf)
+
 # License
 
 Dukaonesdk is free software: you can redistribute it and/or modify
