@@ -1,4 +1,5 @@
 """Implements a client for making a udp connection to the duka one devices """
+
 import socket
 import threading
 import time
@@ -56,7 +57,7 @@ class DukaClient:
             del self._devices[device_id]
         return device
 
-    def get_device(self, device_id: str) -> Device:
+    def get_device(self, device_id: str) -> Device | None:
         """Get a device by device id."""
         if device_id not in self._devices:
             return None
@@ -121,7 +122,7 @@ class DukaClient:
 
     def set_mode(self, device: Device, mode: Mode):
         """Set the mode of the specified device"""
-        if device.mode == Mode:
+        if device.mode == mode:
             return
         packet = DukaPacket()
         packet.initialize_mode_cmd(device, mode)
@@ -141,7 +142,7 @@ class DukaClient:
         Returns None if the device does not exist
         Returns the Device object if it exist
         """
-        device: Device = self.get_device(device_id)
+        device: Device | None = self.get_device(device_id)
         # Is the device already added
         if device is not None:
             return device
@@ -183,7 +184,7 @@ class DukaClient:
             self._sock.sendto(data, (device.ip_address, 4000))
 
     def __wait_for_socket(self):
-        """Wait for notify thread to create socket """
+        """Wait for notify thread to create socket"""
         if self._socket_listening:
             return
         timeout = time.time() + 3
@@ -195,7 +196,7 @@ class DukaClient:
                 raise Exception("Timeout waiting for socket connection")
 
     def __print_data(self, data):
-        """Print data in hex - for debugging purpose """
+        """Print data in hex - for debugging purpose"""
         print("".join("{:02x}".format(x) for x in data))
 
     def __open_socket(self):
@@ -281,7 +282,7 @@ class DukaClient:
         """Update the device with data recieved. Called by the dukaclient"""
         haschange = False
         if device._ip_address is not None and ip_address != device._ip_address:
-            self._ip_address = ip_address
+            device._ip_address = ip_address
             haschange = True
         if packet.speed is not None and packet.speed != device._speed:
             device._speed = packet.speed
