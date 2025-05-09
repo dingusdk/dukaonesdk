@@ -1,4 +1,5 @@
 """Implements the duka one device class """
+import asyncio
 import time
 from .mode import Mode
 from .speed import Speed
@@ -107,3 +108,8 @@ class Device:
         timeout = time.time() + 2
         while self.firmware_version is None and time.time() < timeout:
             time.sleep(0.1)
+
+    async def wait_for_initialize_async(self):
+        timeout = time.time() + 2
+        while self.firmware_version is None and time.time() < timeout:
+            await asyncio.sleep(0.1)
