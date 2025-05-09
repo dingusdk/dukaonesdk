@@ -122,7 +122,7 @@ class DukaClient:
 
     def set_mode(self, device: Device, mode: Mode):
         """Set the mode of the specified device"""
-        if device.mode == Mode:
+        if device.mode == mode:
             return
         packet = DukaPacket()
         packet.initialize_mode_cmd(device, mode)
