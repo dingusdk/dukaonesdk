@@ -3,6 +3,7 @@ Create a file called ".deviceid" in the current folder.
 This file should contain  the duka one device id.
 You can see the duka one device id in the duka one app.
 """
+import asyncio
 import sys
 import time
 
@@ -28,7 +29,7 @@ def newdevice_callback(deviceid: str):
     print("New device id: " + deviceid)
 
 
-def main():
+async def main():
     """Main example """
     client: DukaClient = DukaClient()
     client.search_devices(newdevice_callback)
@@ -38,7 +39,7 @@ def main():
     with open(".deviceid", "r") as file:
         device_id = file.readline().replace("\n", "")
     # initialize the DukaClient and add the device
-    mydevice: Device = client.validate_device(device_id, ip_address="192.168.1.255")
+    mydevice: Device = client.validate_device(device_id, ip_address="255.255.255.255")
     if mydevice is None:
         print("Device does not respond")
     else:
@@ -46,6 +47,8 @@ def main():
             device_id, ip_address=mydevice.ip_address, onchange=onchange
         )
         print("Device added")
+        if not await client.wait_for_initialize_async( mydevice):
+            print("Device not initialized")
 
         print(f"Firmware version: {mydevice.firmware_version}")
         print(f"Firmware date: {mydevice.firmware_date}")
@@ -82,4 +85,4 @@ def main():
     exit(0)
 
 
-main()
+asyncio.run( main())
