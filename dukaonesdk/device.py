@@ -3,7 +3,7 @@ import asyncio
 import time
 from .mode import Mode
 from .speed import Speed
-
+from warnings import deprecated
 
 class Device:
     """A class representing a single Duke One Device"""
@@ -104,11 +104,13 @@ class Device:
         """
         return self.firmware_version is not None
 
+    @deprecated("Use DukaClient.wait_for_initialize_async")
     def wait_for_initialize(self):
         timeout = time.time() + 2
         while self.firmware_version is None and time.time() < timeout:
             time.sleep(0.1)
 
+    @deprecated("Use DukaClient.wait_for_initialize_async")
     async def wait_for_initialize_async(self):
         timeout = time.time() + 2
         while self.firmware_version is None and time.time() < timeout:

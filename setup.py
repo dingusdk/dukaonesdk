@@ -1,11 +1,12 @@
 """
 Setup of the dukaonesdk module
 """
+
 from setuptools import setup
 
 setup(
     name="dukaonesdk",
-    version="1.0.5",
+    version="1.0.6",
     description="Duka One ventilation SDK",
     long_description=(
         "SDK for connection to the Duka One S6W ventilation. "
