@@ -1,5 +1,7 @@
 """Implements a class for the UDP data packet"""
+
 from enum import Enum
+
 from .device import Device
 from .mode import Mode
 from .speed import Speed

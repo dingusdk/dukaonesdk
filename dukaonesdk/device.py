@@ -1,9 +1,12 @@
-"""Implements the duka one device class """
+"""Implements the duka one device class"""
+
 import asyncio
 import time
+from warnings import deprecated
+
 from .mode import Mode
 from .speed import Speed
-from warnings import deprecated
+
 
 class Device:
     """A class representing a single Duke One Device"""
@@ -11,7 +14,7 @@ class Device:
     def __init__(
         self,
         deviceid: str,
-        password: str = None,
+        password: str = "",
         ip_address: str = "<broadcast>",
         onchange=None,
     ):

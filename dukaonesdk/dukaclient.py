@@ -1,15 +1,18 @@
-"""Implements a client for making a udp connection to the duka one devices """
+"""Implements a client for making a udp connection to the duka one devices"""
+
 import asyncio
-from random import random
+import logging
 import socket
 import threading
 import time
-
-from socket import SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST
+from random import random
+from socket import SO_BROADCAST, SO_REUSEADDR, SOL_SOCKET
 
 from .device import Device, Mode, Speed
 from .dukapacket import DukaPacket
 from .responsepacket import ResponsePacket
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class DukaClient:
@@ -36,7 +39,7 @@ class DukaClient:
     def add_device(
         self,
         device_id: str,
-        password: str = None,
+        password: str = "",
         ip_address: str = "<broadcast>",
         onchange=None,
     ) -> Device:
@@ -49,12 +52,11 @@ class DukaClient:
         self.__send_get_firmware(device)
         return device
 
-
     async def wait_for_initialize_async(self, device: Device) -> bool:
         """Wait for the device to respond with firmware version.
-        
+
         If a respnse is not received resend the get firmware packet.
-        A random 0-1 sec is added to prevent several devices to do it at the 
+        A random 0-1 sec is added to prevent several devices to do it at the
         same time.
         """
         if device is None:
@@ -68,8 +70,7 @@ class DukaClient:
                 nextgetfirmware = time.time() + 1 - random()
         return device.firmware_version is not None
 
-
-    def remove_device(self, device_id):
+    def remove_device(self, device_id: str) -> Device | None:
         """Remove an existing device"""
         device: Device = self.get_device(device_id)
         if device is not None:
@@ -82,7 +83,7 @@ class DukaClient:
             return None
         return self._devices[device_id]
 
-    def get_device_count(self):
+    def get_device_count(self) -> int:
         """Return the number of devices"""
         return len(self._devices)
 
@@ -93,6 +94,17 @@ class DukaClient:
         self.__wait_for_socket()
         with DukaClient._mutex:
             self._sock.sendto(packet.data, ("<broadcast>", 4000))
+
+    async def search_devices_async(self, wait: float = 2.0) -> list[str]:
+        """Search for devices and return a list of device ids"""
+        device_ids = []
+
+        def callback(deviceid: str):
+            device_ids.append(deviceid)
+
+        self.search_devices(callback)
+        await asyncio.sleep(wait)
+        return device_ids
 
     def set_speed(self, device: Device, speed: Speed):
         """Set the speed of the specified device"""
@@ -155,12 +167,12 @@ class DukaClient:
         self.__send_data(device, packet.data)
 
     def validate_device(
-        self, device_id: str, password: str = None, ip_address: str = "<broadcast>"
+        self, device_id: str, password: str = "", ip_address: str = "<broadcast>"
     ) -> Device:
         """Validate if a device exist and repsonds.
         Returns None if the device does not exist
         Returns the Device object if it exist.
-        This should be called before a device is added. 
+        This should be called before a device is added.
         If you call it after a device is added,
         it will just return the already added device
         and not verify/wait for a response from the device
@@ -170,6 +182,7 @@ class DukaClient:
         device: Device | None = self.get_device(device_id)
         # Is the device already added
         if device is not None:
+            _LOGGER.warning("Device %s already added", device_id)
             return device
         device = self.add_device(device_id, password, ip_address)
         try:
@@ -181,7 +194,7 @@ class DukaClient:
                     return device
                 if time.time() > timeout:
                     break
-                time.sleep(0.1)
+                time.sleep(0.2)
             return None
         finally:
             self.remove_device(device.device_id)
@@ -208,7 +221,7 @@ class DukaClient:
         with DukaClient._mutex:
             self._sock.sendto(data, (device.ip_address, 4000))
 
-    def __send_get_firmware(self,device:Device):
+    def __send_get_firmware(self, device: Device):
         packet = DukaPacket()
         packet.initialize_get_firmware_cmd(device)
         self.__send_data(device, packet.data)
@@ -223,11 +236,11 @@ class DukaClient:
             if self._socket_listening:
                 return
             if time.time() > timeout:
-                raise Exception("Timeout waiting for socket connection")
+                raise TimeoutError("Timeout waiting for socket connection")
 
     def __print_data(self, data):
         """Print data in hex - for debugging purpose"""
-        print("".join("{:02x}".format(x) for x in data))
+        print("".join(f"{x:02x}" for x in data))
 
     def __open_socket(self):
         """Open the socket and set the  options on the socket"""
@@ -268,13 +281,13 @@ class DukaClient:
         try:
             data, addr = self._sock.recvfrom(1024)
             return (data, addr)
-        except socket.timeout:
+        except TimeoutError:
             try:
                 self.__update_all_device_status()
-            except socket.error:
+            except OSError:
                 # recreate soket on error
                 self.__close_socket()
-        except socket.error:
+        except OSError:
             # recreate soket on error
             self.__close_socket()
         return (None, None)
@@ -350,4 +363,3 @@ class DukaClient:
         # changes all the time
         if packet.fan1rpm is not None and packet.fan1rpm != device._fan1rpm:
             device._fan1rpm = packet.fan1rpm
-        return

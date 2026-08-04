@@ -25,15 +25,13 @@ def onchange(device: Device):
     )
 
 
-def newdevice_callback(deviceid: str):
-    print("New device id: " + deviceid)
-
-
 async def main():
     """Main example"""
     client: DukaClient = DukaClient()
-    client.search_devices(newdevice_callback)
-    await asyncio.sleep(5)
+    device_ids = await client.search_devices_async()
+    print(f"Found {len(device_ids)} devices")
+    for deviceid in device_ids:
+        print(f"Device id: {deviceid}")
 
     # read the device id
     with open(".deviceid", "r") as file:
