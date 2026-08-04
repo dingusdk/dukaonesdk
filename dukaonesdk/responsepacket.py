@@ -1,13 +1,20 @@
 """Implements a class for the UDP data packet"""
+
+import logging
+from typing import ClassVar
+
+from .dukapacket import DukaPacket
 from .mode import Mode
 from .speed import Speed
-from .dukapacket import DukaPacket
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class ResponsePacket(DukaPacket):
     """A udp data packet from the duka device."""
 
-    parameter_size = {
+    # The size of the data for each parameter.
+    parameter_size: ClassVar[dict[int, int]] = {
         0x01: 1,  # On off
         0x02: 1,  # Speed 1-3 255=manual
         0x06: 1,  # Boot mode
@@ -54,7 +61,7 @@ class ResponsePacket(DukaPacket):
     }
 
     def __init__(self):
-        super(ResponsePacket, self).__init__()
+        super().__init__()
         self.device_id = None
         self.device_password = None
         self.is_on = None
@@ -89,7 +96,7 @@ class ResponsePacket(DukaPacket):
             if func != self.Func.RESPONSE.value:
                 return False
             return self.read_parameters()
-        except Exception:
+        except IndexError:
             return False
 
     def is_header_ok(self):
@@ -119,9 +126,11 @@ class ResponsePacket(DukaPacket):
                 size = self.read_byte()
                 parameter = self.read_byte()
             else:
-                if parameter not in self.parameter_size:
-                    return False
-                size = self.parameter_size[parameter]
+                if parameter in self.parameter_size:
+                    size = self.parameter_size[parameter]
+                else:
+                    _LOGGER.warning("Unknown parameter in response %02X", parameter)
+                    # we will assume size 1 for unknown parameters
             if parameter == self.Parameters.ON_OFF.value:
                 self.is_on = self._data[self._pos] != 0
             elif parameter == self.Parameters.SPEED.value:
