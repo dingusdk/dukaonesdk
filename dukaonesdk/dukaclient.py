@@ -1,6 +1,7 @@
 """Implements a client for making a udp connection to the duka one devices"""
 
 import asyncio
+import logging
 import socket
 import threading
 import time
@@ -10,6 +11,8 @@ from socket import SO_BROADCAST, SO_REUSEADDR, SOL_SOCKET
 from .device import Device, Mode, Speed
 from .dukapacket import DukaPacket
 from .responsepacket import ResponsePacket
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class DukaClient:
@@ -92,6 +95,17 @@ class DukaClient:
         with DukaClient._mutex:
             self._sock.sendto(packet.data, ("<broadcast>", 4000))
 
+    async def search_devices_async(self, wait: float = 2.0) -> list[str]:
+        """Search for devices and return a list of device ids"""
+        device_ids = []
+
+        def callback(deviceid: str):
+            device_ids.append(deviceid)
+
+        self.search_devices(callback)
+        await asyncio.sleep(wait)
+        return device_ids
+
     def set_speed(self, device: Device, speed: Speed):
         """Set the speed of the specified device"""
         if device.speed == speed:
@@ -168,6 +182,7 @@ class DukaClient:
         device: Device | None = self.get_device(device_id)
         # Is the device already added
         if device is not None:
+            _LOGGER.warning("Device %s already added", device_id)
             return device
         device = self.add_device(device_id, password, ip_address)
         try:
@@ -179,7 +194,7 @@ class DukaClient:
                     return device
                 if time.time() > timeout:
                     break
-                time.sleep(0.1)
+                time.sleep(0.2)
             return None
         finally:
             self.remove_device(device.device_id)
@@ -221,7 +236,7 @@ class DukaClient:
             if self._socket_listening:
                 return
             if time.time() > timeout:
-                raise Exception("Timeout waiting for socket connection")
+                raise TimeoutError("Timeout waiting for socket connection")
 
     def __print_data(self, data):
         """Print data in hex - for debugging purpose"""
