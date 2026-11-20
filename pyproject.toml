@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dukaonesdk"
+version = "1.0.7"
+description = "Duka One ventilation SDK"
+readme = { text = "SDK for connection to the Duka One S6W ventilation. Made for interfacing to home assistant", content-type = "text/plain" }
+authors = [
+  { name = "Jens Østergaard Nielsen" },
+]
+license = "GPL-3.0"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/dingusdk/dukaonesdk"
+Repository = "https://github.com/dingusdk/dukaonesdk"
+
+[tool.setuptools.packages.find]
+include = ["dukaonesdk*"]
