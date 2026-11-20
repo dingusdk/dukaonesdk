@@ -2,11 +2,11 @@ name: Publish to TestPyPI and PyPI
 
 on:
   release:
-    types: [published]
+    types: [published, prereleased, released]
   workflow_dispatch:
     inputs:
       target:
-        description: "Release target (testpypi only for manual dry-runs/testing, or both)"
+        description: "Release target (testpypi only for manual testing, or both)"
         type: choice
         default: testpypi
         options:
@@ -32,6 +32,9 @@ jobs:
 
   publish-testpypi:
     needs: build
+    if: >-
+      (github.event_name == 'release' && github.event.action == 'prereleased') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.target == 'testpypi' || inputs.target == 'both'))
     runs-on: ubuntu-latest
     environment:
       name: testpypi
@@ -50,9 +53,12 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
 
   publish-pypi:
-    needs: publish-testpypi
+    needs: build
     if: >-
-      github.event_name == 'release' ||
+      (
+        github.event_name == 'release' &&
+        (github.event.action == 'released' || (github.event.action == 'published' && github.event.release.prerelease == false))
+      ) ||
       (github.event_name == 'workflow_dispatch' && inputs.target == 'both')
     runs-on: ubuntu-latest
     environment:
