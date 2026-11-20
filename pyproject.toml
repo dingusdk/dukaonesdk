@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dukaonesdk"
-version = "1.0.7"
+version = "1.0.8"
 description = "Duka One ventilation SDK"
 readme = "readme.md"
 authors = [
