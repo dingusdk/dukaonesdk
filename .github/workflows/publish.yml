@@ -12,7 +12,7 @@ on:
         options:
           - testpypi
           - both
-          
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -51,6 +51,9 @@ jobs:
 
   publish-pypi:
     needs: publish-testpypi
+    if: >-
+      github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'both')
     runs-on: ubuntu-latest
     environment:
       name: pypi
