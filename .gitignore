@@ -1,6 +1,7 @@
 /dist
 /build.bat
 /upload.bat
+/dukaonesdk.egg-info
 .deviceid
 __pycache__
 build
