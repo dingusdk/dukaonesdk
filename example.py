@@ -34,8 +34,12 @@ async def main():
         print(f"Device id: {deviceid}")
 
     # read the device id
-    with open(".deviceid", "r") as file:
-        device_id = file.readline().replace("\n", "")
+    def read_device_id():
+        with open(".deviceid", "r") as file:
+            return file.readline().replace("\n", "")
+
+    device_id = await asyncio.to_thread(read_device_id)
+
     # initialize the DukaClient and add the device
     mydevice: Device = client.validate_device(device_id, ip_address="255.255.255.255")
     if mydevice is None:
