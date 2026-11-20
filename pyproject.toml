@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "dukaonesdk"
 version = "1.0.7"
 description = "Duka One ventilation SDK"
-readme = { text = "SDK for connection to the Duka One S6W ventilation. Made for interfacing to home assistant", content-type = "text/plain" }
+readme = "readme.md"
 authors = [
   { name = "Jens Østergaard Nielsen" },
 ]
